@@ -59,14 +59,14 @@ def authenticate_user(db: Session, username: str, password: str):
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-      
+
         if payload.get("type") != "access":
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid token type",
                 headers={"WWW-Authenticate": "Bearer"}
             )
-        
+
         email: str = payload.get("sub")
         if email is None:
             raise HTTPException(
@@ -74,7 +74,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
                 detail="Invalid authentication credentials",
                 headers={"WWW-Authenticate": "Bearer"}
             )
-     
+
         user = db.query(User).filter(User.email == email).first()
         if user is None:
             raise HTTPException(

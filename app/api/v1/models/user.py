@@ -1,6 +1,7 @@
 from app.api.db.database import Base
 from sqlalchemy import Column, Integer, String, DateTime
 from datetime import datetime, timezone
+from app.api.v1.models.order import relationship
 
 
 class User(Base):
@@ -12,7 +13,12 @@ class User(Base):
     password = Column(String, nullable=False)
     phone_number = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
-    updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=datetime.now(timezone.utc),
+                        onupdate=datetime.now(timezone.utc))
+
+    orders = relationship("Order", back_populates="user",
+                          cascade="all, delete")
 
     def __repr__(self):
-        return f"<User {self.email}>" 
+        return f"<User {self.email}>"
+
