@@ -11,7 +11,7 @@ build/
 *.spec
 
 # Virtual environment
-venv/  # Your virtual environment folder
+venv/
 
 # Environment variables (sensitive information like DB credentials)
 .env
