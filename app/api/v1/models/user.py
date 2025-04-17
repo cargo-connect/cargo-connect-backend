@@ -1,7 +1,7 @@
 from app.api.db.database import Base
 from sqlalchemy import Column, Integer, String, DateTime, Boolean
 from datetime import datetime, timezone
-from app.api.v1.models.order import relationship
+from sqlalchemy.orm import relationship
 
 
 class User(Base):
@@ -23,3 +23,5 @@ class User(Base):
     def __repr__(self):
         return f"<User {self.email}>"
 
+
+__all__ = ["User"]

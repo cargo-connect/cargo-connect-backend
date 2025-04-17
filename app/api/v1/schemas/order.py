@@ -1,4 +1,3 @@
-# from app.api.v1.models.order import ItemCategory
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
@@ -49,6 +48,7 @@ class OrderOut(OrderBase):
     created_at: datetime
     user_id: int
     item_category: ItemCategory
+    estimated_price: Optional[float]
 
     class Config:
         from_attributes = True

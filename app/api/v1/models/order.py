@@ -4,6 +4,7 @@ from app.api.db.database import Base
 from datetime import datetime
 from enum import Enum as PyEnum
 from app.api.v1.schemas.order import ItemCategory
+from sqlalchemy import Float
 
 
 class DeliveryType(str,  PyEnum):
@@ -39,5 +40,13 @@ class Order(Base):
     status = Column(SQLEnum(OrderStatus), default=OrderStatus.confirmed)
     is_completed = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+    estimated_price = Column(Float, nullable=True)
 
     user = relationship("User", back_populates="orders", cascade="all, delete")
+
+
+__all__ = ["Order"]
+
+
+
+

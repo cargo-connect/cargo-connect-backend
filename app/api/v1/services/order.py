@@ -1,14 +1,22 @@
 from sqlalchemy.orm import Session
 from app.api.v1.models.order import Order, OrderStatus
 from app.api.v1.schemas.order import OrderCreate, OrderUpdate
+from app.api.v1.services.order_pricing import calculate_estimated_price
 
 
-def create_order(db: Session, user_id: int, order_data: OrderCreate):
-    order = Order(**order_data.dict(), user_id=user_id)
+def create_order(db: Session, user_id: int, order_data: OrderCreate,
+                 distance: float, weight: float = 0):
+    estimated_price = calculate_estimated_price(
+        delivery_type=order_data.delivery_type.value, distance=distance,
+        weight=weight
+    )
+    # This stores this price in the order or returns it in the response.
+    order = Order(**order_data.dict(), user_id=user_id,
+                  estimated_price=estimated_price)
     db.add(order)
     db.commit()
     db.refresh(order)
-    return order
+    return order, estimated_price
 
 
 def get_orders(db: Session, user_id: int):

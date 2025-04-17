@@ -23,16 +23,19 @@ async def register(user: UserRegisterCreate, db: Session = Depends(get_db)) -> U
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)) -> TokenResponse:
     return login_user(form_data=form_data, db=db)
 
-@user_router.get("/me",response_model=UserResponse,)
+
+@user_router.get("/me", response_model=UserResponse,)
 def get_current_user_info(current_user: User = Depends(get_current_verified_user)) -> UserResponse:
     return UserResponse.model_validate(current_user)
 
-@user_router.post("/verify-email/{token}")
+
+@user_router.get("/verify-email")
 def verify_email(token: str, db: Session = Depends(get_db)):
     user = verify_email_token(token, db)
     user.is_verified = True
     db.commit()
     return {"message": "Email verified successfully"}
+
 
 @user_router.post("/resend-verification")
 async def resend_verification_email(current_user: User = Depends(get_current_user)):

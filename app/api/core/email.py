@@ -22,7 +22,7 @@ conf = ConnectionConfig(
 async def send_verification_email(email: str, token: str):
     try:
         verification_url = f"{os.getenv('FRONTEND_URL', 'http://localhost:8000')}/api/v1/users/verify-email?token={token}"
-        
+  
         message = MessageSchema(
             subject="Verify your email for Cargo-Connect",
             recipients=[email],

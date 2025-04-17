@@ -33,7 +33,9 @@ def register_user(user: UserRegisterCreate, db: Session) -> UserResponse:
         phone_number=db_user.phone_number,
     )
 
-def login_user(form_data: OAuth2PasswordRequestForm, db: Session) -> Dict[str, Any]:
+
+def login_user(form_data: OAuth2PasswordRequestForm, db: Session) -> Dict[str,
+                                                                          Any]:
     db_user = authenticate_user(db, form_data.username, form_data.password)
 
     if not db_user:
@@ -42,7 +44,8 @@ def login_user(form_data: OAuth2PasswordRequestForm, db: Session) -> Dict[str, A
             detail="Invalid email or password"
         )
 
-    access_token = create_access_token(data={"sub": db_user.email},expires_delta=timedelta(minutes=30))
+    access_token = create_access_token(data={"sub": db_user.email},
+                                       expires_delta=timedelta(minutes=30))
     return {
         "access_token": access_token,
         "token_type": "bearer",
