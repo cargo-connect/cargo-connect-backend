@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_URL=sqlite:////app/cargoconnect.db
+      - SECRET_KEY=your-secret-key
+    volumes:
+      - ./cargoconnect.db:/app/cargoconnect.db
