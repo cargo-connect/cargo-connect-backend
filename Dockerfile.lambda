@@ -1,0 +1,24 @@
+# Use a Python base image suitable for Lambda
+FROM public.ecr.aws/docker/library/python:3.8.12-slim-buster
+
+# Add the AWS Lambda Web Adapter
+COPY --from=public.ecr.aws/awsguru/aws-lambda-adapter:0.9.0 /lambda-adapter /opt/extensions/lambda-adapter
+
+# Set the port Uvicorn will listen on inside the container
+ENV PORT=8000
+
+# Set the working directory inside the container
+WORKDIR /var/task
+
+# Copy the requirements file
+COPY requirements.txt ./
+# Install dependencies
+# Consider adding --no-cache-dir to reduce image size
+RUN python -m pip install --no-cache-dir -r requirements.txt
+
+# Copy the entire 'app' directory into the working directory within the container
+COPY app/ ./app/
+
+# Command to run the FastAPI app using Uvicorn
+# Note: The path to the app object is now app.main:app because we copied the 'app' folder
+CMD exec uvicorn --port=$PORT app.main:app
