@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi import APIRouter, Depends, status, HTTPException, Query
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from app.api.db.database import get_db
@@ -28,8 +28,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 def get_current_user_info(current_user: User = Depends(get_current_verified_user)) -> UserResponse:
     return UserResponse.model_validate(current_user)
 
-
-@user_router.get("/verify-email")
+@user_router.post("/verify-email/{token}")
 def verify_email(token: str, db: Session = Depends(get_db)):
     user = verify_email_token(token, db)
     user.is_verified = True
