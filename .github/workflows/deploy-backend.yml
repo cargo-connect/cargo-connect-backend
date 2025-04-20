@@ -1,4 +1,4 @@
-name: Deploy Backend to AWS Lambda
+name: Deploy Backend to AWS EC2
 
 on:
   push:
@@ -21,9 +21,9 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }} # Provided via GitHub secrets
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }} # Provided via GitHub secrets 
           aws-region: ${{ secrets.AWS_REGION }}           # Provided via GitHub secrets
-          role-session-name: GitHubActionsBackendDeploy
+          role-session-name: GitHubActionsBackendDeployEC2 # Updated session name slightly for clarity
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -32,22 +32,58 @@ jobs:
       - name: Build, tag, and push image to Amazon ECR
         id: build-image
         env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY_NAME }} # Provided via GitHub secrets
+          ECR_REPOSITORY_URL: ${{ secrets.ECR_REPOSITORY_URL }} # Use the full URL from secrets
           IMAGE_TAG: ${{ github.sha }} # Use commit SHA as the image tag
         run: |
-          # Use -f to specify the Dockerfile for Lambda deployment
-          docker build -f Dockerfile.lambda -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+          echo "Building image..."
+          docker build -t $ECR_REPOSITORY_URL:$IMAGE_TAG .
+          echo "Pushing image $ECR_REPOSITORY_URL:$IMAGE_TAG..."
+          docker push $ECR_REPOSITORY_URL:$IMAGE_TAG
+          echo "image_uri=$ECR_REPOSITORY_URL:$IMAGE_TAG" >> $GITHUB_OUTPUT # Output the full URI
 
-      - name: Update Lambda Function
-        env:
-          LAMBDA_FUNCTION_NAME: ${{ secrets.LAMBDA_FUNCTION_NAME }} # Provided via GitHub secrets
-          IMAGE_URI: ${{ steps.build-image.outputs.image }}
-        run: |
-          echo "Updating Lambda function $LAMBDA_FUNCTION_NAME with image $IMAGE_URI"
-          aws lambda update-function-code \
-            --function-name $LAMBDA_FUNCTION_NAME \
-            --image-uri $IMAGE_URI \
-            --region ${{ secrets.AWS_REGION }}
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@master
+        env: # Environment variables passed to the SSH script's context
+          IMAGE_URI: ${{ steps.build-image.outputs.IMAGE_URI }}
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          # Pass secrets needed by the application
+          DATABASE_URL_SECRET: ${{ secrets.DATABASE_URL }} # Should be sqlite:////app/cargoconnect.db
+          SECRET_KEY_SECRET: ${{ secrets.SECRET_KEY }}
+          MAIL_SERVER_SECRET: ${{ secrets.MAIL_SERVER }}
+          MAIL_USERNAME_SECRET: ${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD_SECRET: ${{ secrets.MAIL_PASSWORD }}
+          MAIL_FROM_SECRET: ${{ secrets.MAIL_FROM }}
+          # Add any other required env vars here
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          script: |
+            set -e # Exit immediately if a command exits with a non-zero status.
+            echo "Logging into ECR..."
+            # Assumes AWS CLI is installed on EC2 and the instance has an IAM role with ECR permissions
+            aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
+
+            echo "Pulling new image: $IMAGE_URI"
+            docker pull $IMAGE_URI
+
+            echo "Stopping and removing existing container..."
+            docker stop cargo-connect-app || true # Ignore error if container doesn't exist
+            docker rm cargo-connect-app || true # Ignore error if container doesn't exist
+
+            echo "Starting new container with secrets..."
+            # Note: Ensure the database volume path on EC2 exists and has correct permissions if needed.
+            # For SQLite persistence, add: -v /path/on/ec2/cargoconnect.db:/app/cargoconnect.db
+            docker run -d --name cargo-connect-app -p 8000:8000 --restart always \
+              -e ENVIRONMENT=dev \
+              -e DATABASE_URL="$DATABASE_URL_SECRET" \
+              -e SECRET_KEY="$SECRET_KEY_SECRET" \
+              -e MAIL_SERVER="$MAIL_SERVER_SECRET" \
+              -e MAIL_USERNAME="$MAIL_USERNAME_SECRET" \
+              -e MAIL_PASSWORD="$MAIL_PASSWORD_SECRET" \
+              -e MAIL_FROM="$MAIL_FROM_SECRET" \
+              $IMAGE_URI
+
+            echo "Deployment via SSH completed successfully."
+            # Optional: Add a 'docker ps' or 'curl localhost:8000' here to verify

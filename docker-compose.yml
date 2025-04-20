@@ -5,8 +5,7 @@ services:
     build: .
     ports:
       - "8000:8000"
-    environment:
-      - DB_URL=sqlite:////app/cargoconnect.db
-      - SECRET_KEY=your-secret-key
+    env_file:
+      - .env
     volumes:
       - ./cargoconnect.db:/app/cargoconnect.db
