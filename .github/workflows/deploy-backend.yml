@@ -46,7 +46,7 @@ jobs:
         env: # Environment variables passed to the SSH script's context
           IMAGE_URI: ${{ steps.build-image.outputs.IMAGE_URI }}
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          AWS_REGION: us-east-1 #hardcoded temporarily
+          AWS_REGION: ${{ secrets.AWS_REGION }}
           # Pass secrets needed by the application
           DATABASE_URL_SECRET: ${{ secrets.DATABASE_URL }} # Should be sqlite:////app/cargoconnect.db
           SECRET_KEY_SECRET: ${{ secrets.SECRET_KEY }}
@@ -63,7 +63,7 @@ jobs:
             set -e # Exit immediately if a command exits with a non-zero status.
             echo "Logging into ECR..."
             # Assumes AWS CLI is installed on EC2 and the instance has an IAM role with ECR permissions
-            aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
+            aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $ECR_REGISTRY
 
             echo "Pulling new image: $IMAGE_URI"
             docker pull $IMAGE_URI
