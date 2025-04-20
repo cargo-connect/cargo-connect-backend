@@ -46,7 +46,7 @@ jobs:
         env: # Environment variables passed to the SSH script's context
           IMAGE_URI: ${{ steps.build-image.outputs.IMAGE_URI }}
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          AWS_REGION: us-east-1 #hardcoded temporarily"
+          AWS_REGION: us-east-1 #hardcoded temporarily
           # Pass secrets needed by the application
           DATABASE_URL_SECRET: ${{ secrets.DATABASE_URL }} # Should be sqlite:////app/cargoconnect.db
           SECRET_KEY_SECRET: ${{ secrets.SECRET_KEY }}
