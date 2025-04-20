@@ -12,7 +12,6 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: dev # Optional: Link to a GitHub environment for protection rules/secrets
 
     steps:
       - name: Checkout code
@@ -23,7 +22,7 @@ jobs:
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }} # Provided via GitHub secrets 
           aws-region: ${{ secrets.AWS_REGION }}           # Provided via GitHub secrets
-          role-session-name: GitHubActionsBackendDeployEC2 # Updated session name slightly for clarity
+          role-session-name: GitHubActionsBackendDeployEC2 
 
       - name: Login to Amazon ECR
         id: login-ecr
