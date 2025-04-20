@@ -1,9 +1,10 @@
 name: Deploy Backend to AWS EC2
 
 on:
+  workflow_dispatch:
   push:
     branches:
-      - main # Or your primary deployment branch
+      - main 
 
 permissions:
   id-token: write # Required for OIDC authentication
