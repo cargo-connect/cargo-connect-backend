@@ -63,10 +63,10 @@ jobs:
             set -e # Exit immediately if a command exits with a non-zero status.
             echo "Logging into ECR..."
             # Assumes AWS CLI is installed on EC2 and the instance has an IAM role with ECR permissions
-            aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $ECR_REGISTRY
+            aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
 
-            echo "Pulling new image: $IMAGE_URI"
-            docker pull $IMAGE_URI
+            echo "Pulling new image: ${{ steps.build-image.outputs.IMAGE_URI }}"
+            docker pull ${{ steps.build-image.outputs.IMAGE_URI }}
 
             echo "Stopping and removing existing container..."
             docker stop cargo-connect-app || true # Ignore error if container doesn't exist
@@ -77,13 +77,13 @@ jobs:
             # For SQLite persistence, add: -v /path/on/ec2/cargoconnect.db:/app/cargoconnect.db
             docker run -d --name cargo-connect-app -p 8000:8000 --restart always \
               -e ENVIRONMENT=dev \
-              -e DATABASE_URL="$DATABASE_URL_SECRET" \
-              -e SECRET_KEY="$SECRET_KEY_SECRET" \
-              -e MAIL_SERVER="$MAIL_SERVER_SECRET" \
-              -e MAIL_USERNAME="$MAIL_USERNAME_SECRET" \
-              -e MAIL_PASSWORD="$MAIL_PASSWORD_SECRET" \
-              -e MAIL_FROM="$MAIL_FROM_SECRET" \
-              $IMAGE_URI
+              -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+              -e SECRET_KEY="${{ secrets.SECRET_KEY }}" \
+              -e MAIL_SERVER="${{ secrets.MAIL_SERVER }}" \
+              -e MAIL_USERNAME="${{ secrets.MAIL_USERNAME }}" \
+              -e MAIL_PASSWORD="${{ secrets.MAIL_PASSWORD }}" \
+              -e MAIL_FROM="${{ secrets.MAIL_FROM }}" \
+              ${{ steps.build-image.outputs.IMAGE_URI }}
 
             echo "Deployment via SSH completed successfully."
             # Optional: Add a 'docker ps' or 'curl localhost:8000' here to verify
