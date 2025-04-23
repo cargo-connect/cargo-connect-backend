@@ -75,7 +75,7 @@ jobs:
             echo "Starting new container with secrets..."
             # Note: Ensure the database volume path on EC2 exists and has correct permissions if needed.
             # For SQLite persistence, add: -v /path/on/ec2/cargoconnect.db:/app/cargoconnect.db
-            docker run -d --name cargo-connect-app -p 80:8000 --restart always \
+            docker run -d --name cargo-connect-app --restart always \
               -e ENVIRONMENT=dev \
               -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
               -e SECRET_KEY="${{ secrets.SECRET_KEY }}" \
