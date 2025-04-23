@@ -61,6 +61,8 @@ jobs:
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
           script: |
             set -e # Exit immediately if a command exits with a non-zero status.
+            echo "Waiting 60 seconds for instance initialization (user_data)..."
+            sleep 60           
             echo "Logging into ECR..."
             # Assumes AWS CLI is installed on EC2 and the instance has an IAM role with ECR permissions
             aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
