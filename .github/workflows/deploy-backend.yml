@@ -85,6 +85,7 @@ jobs:
               -e MAIL_USERNAME="${{ secrets.MAIL_USERNAME }}" \
               -e MAIL_PASSWORD="${{ secrets.MAIL_PASSWORD }}" \
               -e MAIL_FROM="${{ secrets.MAIL_FROM }}" \
+              -e FRONTEND_URL="${{ secrets.FRONTEND_URL }}" \
               ${{ steps.build-image.outputs.IMAGE_URI }}
 
             echo "Deployment via SSH completed successfully."
