@@ -5,3 +5,4 @@ class PricingBase(BaseModel):
     delivery_type: str
     distance: float
     weight: float = 0
+    estimated_price: float

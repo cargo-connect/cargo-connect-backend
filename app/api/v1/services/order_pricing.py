@@ -2,8 +2,9 @@
 # from app.api.v1.schemas.order_pricing.PricingBase import weight
 
 
-def calculate_estimated_price(delivery_type: str, distance: float,
-                              weight: float = 0) -> float:
+def calculate_estimated_price(
+    delivery_type: str, distance: float, weight: float = 0
+) -> float:
     base_prices = {
         "motorcycle": 1500.0,  # base price for motorcycle delivery
         "car": 1500.0,  # base price for car delivery
@@ -52,4 +53,3 @@ def calculate_estimated_price(delivery_type: str, distance: float,
 #     total_price = (base_fee + weight_fee + distance_fee + package_surcharge) * speed_multiplier
 
 #     return round(total_price, 2)
-

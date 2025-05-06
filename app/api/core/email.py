@@ -13,16 +13,17 @@ conf = ConnectionConfig(
     MAIL_FROM=os.getenv("MAIL_FROM"),
     MAIL_PORT=int(os.getenv("MAIL_PORT", "587")),
     MAIL_SERVER=os.getenv("MAIL_SERVER"),
-    MAIL_STARTTLS = True,
-    MAIL_SSL_TLS = False,
-    USE_CREDENTIALS = True,
-    VALIDATE_CERTS = True
+    MAIL_STARTTLS=True,
+    MAIL_SSL_TLS=False,
+    USE_CREDENTIALS=True,
+    VALIDATE_CERTS=True,
 )
+
 
 async def send_verification_email(email: str, token: str):
     try:
         verification_url = f"{os.getenv('FRONTEND_URL', 'http://localhost:8000')}/api/v1/users/verify-email?token={token}"
-  
+
         message = MessageSchema(
             subject="Verify your email for Cargo-Connect",
             recipients=[email],
@@ -39,12 +40,12 @@ async def send_verification_email(email: str, token: str):
                 </body>
             </html>
             """,
-            subtype="html"
+            subtype="html",
         )
 
         fm = FastMail(conf)
         await fm.send_message(message)
-        
+
     except Exception as e:
         logger.error(f"Failed to send verification email: {e}")
-        raise e 
+        raise e
