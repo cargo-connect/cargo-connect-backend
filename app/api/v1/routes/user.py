@@ -1,4 +1,6 @@
+import os
 from fastapi import APIRouter, Depends, status, HTTPException, Query
+from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from app.api.db.database import get_db
@@ -28,12 +30,14 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 def get_current_user_info(current_user: User = Depends(get_current_verified_user)) -> UserResponse:
     return UserResponse.model_validate(current_user)
 
-@user_router.post("/verify-email/{token}")
-def verify_email(token: str, db: Session = Depends(get_db)):
+@user_router.get("/verify-email")
+def verify_email(token: str = Query(...), db: Session = Depends(get_db)):
     user = verify_email_token(token, db)
     user.is_verified = True
     db.commit()
-    return {"message": "Email verified successfully"}
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000") # Default to a common frontend dev port if not set
+    redirect_url = f"{frontend_url}/auth/login?verification_status=success"
+    return RedirectResponse(url=redirect_url)
 
 
 @user_router.post("/resend-verification")
